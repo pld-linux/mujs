@@ -1,0 +1,49 @@
+--- mujs/Makefile.orig	2014-11-29 10:26:09.000000000 +0100
++++ mujs/Makefile	2014-11-29 18:04:50.775023210 +0100
+@@ -1,6 +1,6 @@
+ SRCS := $(wildcard js*.c utf*.c regex.c)
+ HDRS := $(wildcard js*.h mujs.h utf.h regex.h)
+-OBJS := $(SRCS:%.c=build/%.o)
++LOBJS := $(SRCS:%.c=build/%.lo)
+ 
+ prefix ?= /usr/local
+ bindir ?= $(prefix)/bin
+@@ -9,6 +9,8 @@
+ 
+ CC := clang
+ CFLAGS := -std=c99 -pedantic -Wall -Wextra -Wno-unused-parameter -Wunreachable-code
++LTCC = libtool --mode=compile --tag=CC $(CC)
++LTLINK = libtool --mode=link --tag=CC $(CC)
+ 
+ ifeq "$(build)" "debug"
+ CFLAGS += -g
+@@ -41,11 +43,14 @@
+ build/%.o: %.c $(HDRS)
+ 	$(CC) $(CFLAGS) -o $@ -c $<
+ 
+-build/libmujs.a: $(OBJS)
+-	ar cru $@ $^
++build/%.lo: %.c $(HDRS)
++	$(LTCC) $(CFLAGS) -o $@ -c $<
+ 
+-build/mujs: build/main.o build/libmujs.a
+-	$(CC) $(LDFLAGS) -o $@ $^ -lm
++build/libmujs.la: $(LOBJS)
++	$(LTLINK) $(LDFLAGS) -o $@ $^ -rpath $(libdir) -lm
++
++build/mujs: build/main.o build/libmujs.la
++	$(LTLINK) $(LDFLAGS) -o $@ $^ -lm
+ 
+ build/mujsone: build/main.o build/one.o
+ 	$(CC) $(LDFLAGS) -o $@ $^ -lm
+@@ -55,8 +60,8 @@
+ 	install -d $(DESTDIR)$(libdir)
+ 	install -d $(DESTDIR)$(bindir)
+ 	install -t $(DESTDIR)$(incdir) mujs.h
+-	install -t $(DESTDIR)$(libdir) build/libmujs.a
+-	install -t $(DESTDIR)$(bindir) build/mujs
++	libtool --mode=install install build/libmujs.la $(DESTDIR)$(libdir)
++	libtool --mode=install install build/mujs $(DESTDIR)$(bindir)
+ 
+ VERSION = $(shell git describe --tags --always)
+ 
