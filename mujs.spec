@@ -3,7 +3,7 @@ Summary(pl.UTF-8):	MuJS - lekki, osadzalny interpreter JavaScriptu napisany w C
 Name:		mujs
 Version:	0
 %define	snap	20141118
-Release:	0.%{snap}.1
+Release:	0.%{snap}.2
 License:	AGPL v3+
 Group:		Development/Languages
 # git clone git://git.ghostscript.com/mujs.git
