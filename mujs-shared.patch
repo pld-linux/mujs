@@ -1,49 +1,55 @@
 --- mujs/Makefile.orig	2016-04-14 21:02:05.000000000 +0200
 +++ mujs/Makefile	2016-04-14 21:20:51.139270570 +0200
-@@ -1,6 +1,6 @@
- SRCS := $(wildcard js*.c utf*.c regexp.c)
- HDRS := $(wildcard js*.h mujs.h utf.h regexp.h)
--OBJS := $(SRCS:%.c=build/%.o)
-+LOBJS := $(SRCS:%.c=build/%.o)
- 
- prefix ?= /usr/local
- bindir ?= $(prefix)/bin
-@@ -8,6 +8,8 @@
- libdir ?= $(prefix)/lib
+@@ -16,6 +16,8 @@
+ # Compiler flags for various configurations:
  
  CFLAGS := -std=c99 -pedantic -Wall -Wextra -Wno-unused-parameter
 +LTCC = libtool --mode=compile --tag=CC $(CC)
 +LTLINK = libtool --mode=link --tag=CC $(CC)
  
  ifeq "$(CC)" "clang"
- CFLAGS += -Wunreachable-code
-@@ -44,11 +46,14 @@
- build/%.o: %.c $(HDRS)
- 	$(CC) $(CFLAGS) -o $@ -c $<
+   CFLAGS += -Wunreachable-code
+@@ -53,7 +55,7 @@
  
--build/libmujs.a: $(OBJS)
--	$(AR) cru $@ $^
-+build/%.lo: %.c $(HDRS)
+ default: static
+ static: $(OUT)/mujs-pp $(OUT)/mujs $(OUT)/libmujs.a $(OUT)/mujs.pc
+-shared: static $(OUT)/libmujs.so
++shared: static $(OUT)/libmujs.la
+ 
+ astnames.h: jsparse.h
+ 	grep -E '(AST|EXP|STM)_' jsparse.h | sed 's/^[^A-Z]*\(AST_\)*/"/;s/,.*/",/' | tr A-Z a-z > $@
+@@ -78,13 +80,14 @@
+ 	@ mkdir -p $(dir $@)
+ 	$(AR) cr $@ $^
+ 
+-$(OUT)/libmujs.so: one.c $(HDRS)
+-	@ mkdir -p $(dir $@)
+-	$(CC) $(CFLAGS) -fPIC -shared -o $@ $< -lm
+-
+-$(OUT)/mujs: $(OUT)/libmujs.o $(OUT)/main.o
+-	@ mkdir -p $(dir $@)
+-	$(CC) $(LDFLAGS) -o $@ $^ $(LIBREADLINE) -lm
++$(OUT)/%.lo: one.c $(HDRS)
 +	$(LTCC) $(CFLAGS) -o $@ -c $<
- 
--build/mujs: build/main.o build/libmujs.a
--	$(CC) $(LDFLAGS) -o $@ $^ -lm
-+build/libmujs.la: $(LOBJS)
++
++$(OUT)/libmujs.la: $(OUT)/libmujs.o
 +	$(LTLINK) $(LDFLAGS) -o $@ $^ -rpath $(libdir) -lm
 +
-+build/mujs: build/main.o build/libmujs.la
-+	$(LTLINK) $(LDFLAGS) -o $@ $^ -lm
++$(OUT)/mujs: $(OUT)/libmujs.la $(OUT)/main.o
++	$(LTLINK) $(LDFLAGS) -o $@ $^ $(LIBREADLINE) -lm
  
- build/mujsone: build/main.o build/one.o
- 	$(CC) $(LDFLAGS) -o $@ $^ -lm
-@@ -58,8 +63,8 @@
- 	install -d $(DESTDIR)$(libdir)
- 	install -d $(DESTDIR)$(bindir)
- 	install mujs.h $(DESTDIR)$(incdir)
--	install build/libmujs.a $(DESTDIR)$(libdir)
--	install build/mujs $(DESTDIR)$(bindir)
-+	libtool --mode=install install build/libmujs.la $(DESTDIR)$(libdir)
-+	libtool --mode=install install build/mujs $(DESTDIR)$(bindir)
+ $(OUT)/mujs-pp: $(OUT)/libmujs.o $(OUT)/pp.o
+ 	@ mkdir -p $(dir $@)
+@@ -118,9 +124,10 @@
+ 	install -m 644 build/release/libmujs.a $(DESTDIR)$(libdir)
  
- VERSION = $(shell git describe --tags --always)
+ install-shared: install-common
+-	install -m 755 build/release/libmujs.so $(DESTDIR)$(libdir)
++	libtool --mode=install install build/release/libmujs.la $(DESTDIR)$(libdir)
++	libtool --mode=install install build/release/mujs $(DESTDIR)$(bindir)
  
+-install: install-static
++install: install-static install-shared
+ 
+ tarball:
+ 	git archive --format=zip --prefix=mujs-$(VERSION)/ HEAD > mujs-$(VERSION).zip

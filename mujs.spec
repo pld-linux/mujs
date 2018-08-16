@@ -1,15 +1,12 @@
 Summary:	MuJS - lightweight, embeddable JavaScript interpreter in C
 Summary(pl.UTF-8):	MuJS - lekki, osadzalny interpreter JavaScriptu napisany w C
 Name:		mujs
-Version:	0
-%define	snap	20160302
-Release:	0.%{snap}.1
+Version:	1.0.4
+Release:	1
 License:	AGPL v3+
 Group:		Development/Languages
-# git clone git://git.ghostscript.com/mujs.git
-# tar cJf mujs.tar.xz mujs
-Source0:	%{name}.tar.xz
-# Source0-md5:	9ef58e75f0cc240141ca8b51d6909aad
+Source0:	https://www.mujs.com/downloads/%{name}-%{version}.tar.xz
+# Source0-md5:	1f73227ae19fbbf3944c97df3b9e7018
 Patch0:		%{name}-shared.patch
 URL:		http://www.mujs.com/
 BuildRoot:	%{tmpdir}/%{name}-%{version}-root-%(id -u -n)
@@ -47,7 +44,7 @@ Static MuJS library.
 Statyczna biblioteka MuJS.
 
 %prep
-%setup -q -n %{name}
+%setup -q
 %patch0 -p1
 
 %build
@@ -65,6 +62,8 @@ rm -rf $RPM_BUILD_ROOT
 	prefix=%{_prefix} \
 	libdir=%{_libdir}
 
+%{__rm} $RPM_BUILD_ROOT%{_libdir}/libmujs.la
+
 %clean
 rm -rf $RPM_BUILD_ROOT
 
@@ -81,8 +80,8 @@ rm -rf $RPM_BUILD_ROOT
 %files devel
 %defattr(644,root,root,755)
 %attr(755,root,root) %{_libdir}/libmujs.so
-%{_libdir}/libmujs.la
 %{_includedir}/mujs.h
+/usr/lib64/pkgconfig/mujs.pc
 
 %files static
 %defattr(644,root,root,755)
