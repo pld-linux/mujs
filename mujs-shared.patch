@@ -10,11 +10,11 @@
  ifeq "$(CC)" "clang"
    CFLAGS += -Wunreachable-code
 @@ -53,7 +55,7 @@
- 
- default: static
- static: $(OUT)/mujs-pp $(OUT)/mujs $(OUT)/libmujs.a $(OUT)/mujs.pc
--shared: static $(OUT)/libmujs.so
-+shared: static $(OUT)/libmujs.la
+ default: shell
+ shell: $(OUT)/mujs $(OUT)/mujs-pp
+ static: $(OUT)/libmujs.a
+-shared: $(OUT)/libmujs.so
++shared: $(OUT)/libmujs.la
  
  astnames.h: jsparse.h
  	grep -E '(AST|EXP|STM)_' jsparse.h | sed 's/^[^A-Z]*\(AST_\)*/"/;s/,.*/",/' | tr A-Z a-z > $@
@@ -41,12 +41,12 @@
  $(OUT)/mujs-pp: $(OUT)/libmujs.o $(OUT)/pp.o
  	@ mkdir -p $(dir $@)
 @@ -118,9 +124,10 @@
- 	install -m 644 build/release/libmujs.a $(DESTDIR)$(libdir)
+ 	install -m 644 $(OUT)/libmujs.a $(DESTDIR)$(libdir)
  
- install-shared: install-common
--	install -m 755 build/release/libmujs.so $(DESTDIR)$(libdir)
-+	libtool --mode=install install build/release/libmujs.la $(DESTDIR)$(libdir)
-+	libtool --mode=install install build/release/mujs $(DESTDIR)$(bindir)
+ install-shared: install-common shared
+-	install -m 755 $(OUT)/libmujs.so $(DESTDIR)$(libdir)
++	libtool --mode=install install $(OUT)/libmujs.la $(DESTDIR)$(libdir)
++	libtool --mode=install install $(OUT)/mujs $(DESTDIR)$(bindir)
  
 -install: install-static
 +install: install-static install-shared
