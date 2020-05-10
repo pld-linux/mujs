@@ -1,5 +1,5 @@
---- mujs/Makefile.orig	2016-04-14 21:02:05.000000000 +0200
-+++ mujs/Makefile	2016-04-14 21:20:51.139270570 +0200
+--- mujs-1.0.7/Makefile.orig	2020-03-17 14:10:18.000000000 +0100
++++ mujs-1.0.7/Makefile	2020-05-10 15:47:59.561908525 +0200
 @@ -16,6 +16,8 @@
  # Compiler flags for various configurations:
  
@@ -9,7 +9,7 @@
  
  ifeq "$(CC)" "clang"
    CFLAGS += -Wunreachable-code
-@@ -53,7 +55,7 @@
+@@ -52,7 +54,7 @@
  default: shell
  shell: $(OUT)/mujs $(OUT)/mujs-pp
  static: $(OUT)/libmujs.a
@@ -18,20 +18,19 @@
  
  astnames.h: jsparse.h
  	grep -E '(AST|EXP|STM)_' jsparse.h | sed 's/^[^A-Z]*\(AST_\)*/"/;s/,.*/",/' | tr A-Z a-z > $@
-@@ -78,13 +80,14 @@
+@@ -77,13 +79,14 @@
  	@ mkdir -p $(dir $@)
  	$(AR) cr $@ $^
  
 -$(OUT)/libmujs.so: one.c $(HDRS)
 -	@ mkdir -p $(dir $@)
 -	$(CC) $(CFLAGS) -fPIC -shared -o $@ $< -lm
--
++$(OUT)/%.lo: one.c $(HDRS)
++	$(LTCC) $(CFLAGS) -o $@ -c $<
+ 
 -$(OUT)/mujs: $(OUT)/libmujs.o $(OUT)/main.o
 -	@ mkdir -p $(dir $@)
 -	$(CC) $(LDFLAGS) -o $@ $^ $(LIBREADLINE) -lm
-+$(OUT)/%.lo: one.c $(HDRS)
-+	$(LTCC) $(CFLAGS) -o $@ -c $<
-+
 +$(OUT)/libmujs.la: $(OUT)/libmujs.o
 +	$(LTLINK) $(LDFLAGS) -o $@ $^ -rpath $(libdir) -lm
 +
@@ -40,16 +39,17 @@
  
  $(OUT)/mujs-pp: $(OUT)/libmujs.o $(OUT)/pp.o
  	@ mkdir -p $(dir $@)
-@@ -118,9 +124,10 @@
+@@ -115,9 +118,10 @@
  	install -m 644 $(OUT)/libmujs.a $(DESTDIR)$(libdir)
  
- install-shared: install-common shared
+-install-shared: install-common $(OUT)/libmujs.so
 -	install -m 755 $(OUT)/libmujs.so $(DESTDIR)$(libdir)
++install-shared: install-common $(OUT)/libmujs.la
 +	libtool --mode=install install $(OUT)/libmujs.la $(DESTDIR)$(libdir)
 +	libtool --mode=install install $(OUT)/mujs $(DESTDIR)$(bindir)
  
 -install: install-static
 +install: install-static install-shared
  
- tarball:
- 	git archive --format=zip --prefix=mujs-$(VERSION)/ HEAD > mujs-$(VERSION).zip
+ uninstall:
+ 	rm -f $(DESTDIR)$(bindir)/mujs
