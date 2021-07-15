@@ -24,9 +24,9 @@
  
 -$(OUT)/libmujs.so: one.c $(HDRS)
 -	@ mkdir -p $(dir $@)
--	$(CC) $(CFLAGS) -fPIC -shared -o $@ $< -lm
+-	$(CC) $(CFLAGS) $(CPPFLAGS) -fPIC -shared $(LDFLAGS) -o $@ $< -lm
 +$(OUT)/%.lo: one.c $(HDRS)
-+	$(LTCC) $(CFLAGS) -o $@ -c $<
++	$(LTCC) $(CFLAGS) $(CPPFLAGS) -o $@ -c $<
  
 -$(OUT)/mujs: $(OUT)/libmujs.o $(OUT)/main.o
 -	@ mkdir -p $(dir $@)
