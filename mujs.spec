@@ -52,7 +52,7 @@ Statyczna biblioteka MuJS.
 %build
 %{__make} \
 	CC="%{__cc}" \
-	CFLAGS="%{rpmcflags} %{rpmcppflags} -std=c99 -Wall -Wextra -Wno-unused-parameter -Wunreachable-code -fPIC" \
+	CFLAGS="%{rpmcflags} %{rpmcppflags} -std=c99 -Wall -Wextra -Wno-unused-parameter -Wunreachable-code" \
 	LDFLAGS="%{rpmldflags}" \
 	libdir=%{_libdir}
 
