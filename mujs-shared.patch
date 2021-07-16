@@ -18,7 +18,7 @@
  
  astnames.h: jsparse.h
  	grep -E '(AST|EXP|STM)_' jsparse.h | sed 's/^[^A-Z]*\(AST_\)*/"/;s/,.*/",/' | tr A-Z a-z > $@
-@@ -80,13 +82,15 @@ $(OUT)/libmujs.a: $(OUT)/libmujs.o
+@@ -80,17 +82,19 @@ $(OUT)/libmujs.a: $(OUT)/libmujs.o
  	@ mkdir -p $(dir $@)
  	$(AR) cr $@ $^
  
@@ -37,8 +37,14 @@
 +$(OUT)/mujs: $(OUT)/libmujs.la $(OUT)/main.o
 +	$(LTLINK) $(LDFLAGS) -o $@ $^ $(LIBREADLINE) -lm
  
- $(OUT)/mujs-pp: $(OUT)/libmujs.o $(OUT)/pp.o
+-$(OUT)/mujs-pp: $(OUT)/libmujs.o $(OUT)/pp.o
++$(OUT)/mujs-pp: $(OUT)/libmujs.la $(OUT)/pp.o
  	@ mkdir -p $(dir $@)
+-	$(CC) $(LDFLAGS) -o $@ $^ -lm
++	$(LTLINK) $(LDFLAGS) -o $@ $^ -lm
+ 
+ .PHONY: $(OUT)/mujs.pc
+ $(OUT)/mujs.pc:
 @@ -117,10 +121,11 @@ install-common: $(OUT)/mujs $(OUT)/mujs.
  install-static: install-common $(OUT)/libmujs.a
  	install -m 644 $(OUT)/libmujs.a $(DESTDIR)$(libdir)
