@@ -1,12 +1,12 @@
 Summary:	MuJS - lightweight, embeddable JavaScript interpreter in C
 Summary(pl.UTF-8):	MuJS - lekki, osadzalny interpreter JavaScriptu napisany w C
 Name:		mujs
-Version:	1.1.3
+Version:	1.2.0
 Release:	1
 License:	ISC
 Group:		Development/Languages
 Source0:	https://www.mujs.com/downloads/%{name}-%{version}.tar.xz
-# Source0-md5:	509fe19edc13f2173f1d05e1a922c237
+# Source0-md5:	e48906891795bb0770d5b1fa52aeded9
 Patch0:		%{name}-shared.patch
 URL:		http://www.mujs.com/
 BuildRequires:	tar >= 1:1.22
@@ -50,7 +50,7 @@ Statyczna biblioteka MuJS.
 %patch0 -p1
 
 %build
-%{__make} \
+%{__make} -j1 default shared static \
 	CC="%{__cc}" \
 	CFLAGS="%{rpmcflags} %{rpmcppflags} -std=c99 -Wall -Wextra -Wno-unused-parameter -Wunreachable-code" \
 	LDFLAGS="%{rpmldflags}" \
@@ -59,12 +59,10 @@ Statyczna biblioteka MuJS.
 %install
 rm -rf $RPM_BUILD_ROOT
 
-%{__make} install \
+%{__make} install install-shared \
 	DESTDIR=$RPM_BUILD_ROOT \
 	prefix=%{_prefix} \
 	libdir=%{_libdir}
-
-%{__rm} $RPM_BUILD_ROOT%{_libdir}/libmujs.la
 
 %clean
 rm -rf $RPM_BUILD_ROOT
