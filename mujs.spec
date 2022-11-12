@@ -9,6 +9,7 @@ Source0:	https://www.mujs.com/downloads/%{name}-%{version}.tar.xz
 # Source0-md5:	e48906891795bb0770d5b1fa52aeded9
 Patch0:		%{name}-shared.patch
 URL:		http://www.mujs.com/
+BuildRequires:	readline-devel
 BuildRequires:	tar >= 1:1.22
 BuildRequires:	xz
 BuildRoot:	%{tmpdir}/%{name}-%{version}-root-%(id -u -n)
