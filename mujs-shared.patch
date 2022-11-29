@@ -1,21 +1,23 @@
 --- mujs-1.2.0/Makefile.orig	2021-12-08 12:56:12.000000000 +0100
 +++ mujs-1.2.0/Makefile	2022-04-08 06:21:16.629112683 +0200
-@@ -88,13 +88,13 @@ $(OUT)/libmujs.a: $(OUT)/libmujs.o
+@@ -88,15 +88,15 @@ $(OUT)/libmujs.a: $(OUT)/libmujs.o
  
  $(OUT)/libmujs.$(SO_EXT): one.c $(HDRS)
- 	@ mkdir -p $(dir $@)
+ 	@ mkdir -p $(@D)
 -	$(CC) $(CFLAGS) $(CPPFLAGS) -fPIC -shared $(LDFLAGS) -o $@ $< -lm
 +	$(CC) $(CFLAGS) $(CPPFLAGS) -fPIC -shared $(LDFLAGS) -Wl,-soname,libmujs.so.0 -o $@ $< -lm
  
--$(OUT)/mujs: $(OUT)/libmujs.o $(OUT)/main.o
-+$(OUT)/mujs: $(OUT)/main.o $(OUT)/libmujs.$(SO_EXT)
- 	@ mkdir -p $(dir $@)
- 	$(CC) $(LDFLAGS) -o $@ $^ $(LIBREADLINE) -lm
+ libmujs ?= libmujs.a
  
--$(OUT)/mujs-pp: $(OUT)/libmujs.o $(OUT)/pp.o
+-$(OUT)/mujs: $(OUT)/main.o $(OUT)/$(libmujs)
++$(OUT)/mujs: $(OUT)/main.o $(OUT)/libmujs.$(SO_EXT)
+ 	@ mkdir -p $(@D)
+ 	$(CC) $(LDFLAGS) -o $@ $< -L$(OUT) -l:$(libmujs) $(LIBREADLINE) -lm
+ 
+-$(OUT)/mujs-pp: $(OUT)/pp.o $(OUT)/$(libmujs)
 +$(OUT)/mujs-pp: $(OUT)/pp.o $(OUT)/libmujs.$(SO_EXT)
- 	@ mkdir -p $(dir $@)
- 	$(CC) $(LDFLAGS) -o $@ $^ -lm
+ 	@ mkdir -p $(@D)
+ 	$(CC) $(LDFLAGS) -o $@ $< -L$(OUT) -l:$(libmujs) -lm
  
 @@ -124,7 +124,9 @@ install-static: install-common $(OUT)/li
  	install -m 644 $(OUT)/libmujs.a $(DESTDIR)$(libdir)
