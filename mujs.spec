@@ -1,17 +1,15 @@
 Summary:	MuJS - lightweight, embeddable JavaScript interpreter in C
 Summary(pl.UTF-8):	MuJS - lekki, osadzalny interpreter JavaScriptu napisany w C
 Name:		mujs
-Version:	1.3.2
+Version:	1.3.3
 Release:	1
 License:	ISC
 Group:		Development/Languages
-Source0:	https://www.mujs.com/downloads/%{name}-%{version}.tar.xz
-# Source0-md5:	c2221592e7033fd32cc399e24ca44f18
+Source0:	https://www.mujs.com/downloads/%{name}-%{version}.tar.gz
+# Source0-md5:	ba876c5c3bff4ef988b405a148ec111e
 Patch0:		%{name}-shared.patch
 URL:		http://www.mujs.com/
 BuildRequires:	readline-devel
-BuildRequires:	tar >= 1:1.22
-BuildRequires:	xz
 BuildRoot:	%{tmpdir}/%{name}-%{version}-root-%(id -u -n)
 
 %description
@@ -51,12 +49,12 @@ Statyczna biblioteka MuJS.
 %patch0 -p1
 
 %build
-%{__make} -j1 default shared static \
+%{__make} -j1 release \
 	CC="%{__cc}" \
 	CFLAGS="%{rpmcflags} %{rpmcppflags} -std=c99 -Wall -Wextra -Wno-unused-parameter -Wunreachable-code" \
 	LDFLAGS="%{rpmldflags}" \
-	libdir=%{_libdir} \
-	libmujs=libmujs.so
+	OPTIM= \
+	libdir=%{_libdir}
 
 %install
 rm -rf $RPM_BUILD_ROOT
@@ -76,6 +74,7 @@ rm -rf $RPM_BUILD_ROOT
 %defattr(644,root,root,755)
 %doc AUTHORS COPYING README
 %attr(755,root,root) %{_bindir}/mujs
+%attr(755,root,root) %{_bindir}/mujs-pp
 %attr(755,root,root) %{_libdir}/libmujs.so.*.*.*
 %attr(755,root,root) %ghost %{_libdir}/libmujs.so.0
 

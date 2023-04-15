@@ -1,30 +1,33 @@
---- mujs-1.2.0/Makefile.orig	2021-12-08 12:56:12.000000000 +0100
-+++ mujs-1.2.0/Makefile	2022-04-08 06:21:16.629112683 +0200
-@@ -88,15 +88,15 @@ $(OUT)/libmujs.a: $(OUT)/libmujs.o
+--- mujs-1.3.3/Makefile.orig	2023-04-15 12:09:09.276756511 +0200
++++ mujs-1.3.3/Makefile	2023-04-15 12:22:41.608077963 +0200
+@@ -92,16 +92,16 @@
  
- $(OUT)/libmujs.$(SO_EXT): one.c $(HDRS)
- 	@ mkdir -p $(@D)
--	$(CC) $(CFLAGS) $(CPPFLAGS) -fPIC -shared $(LDFLAGS) -o $@ $< -lm
-+	$(CC) $(CFLAGS) $(CPPFLAGS) -fPIC -shared $(LDFLAGS) -Wl,-soname,libmujs.so.0 -o $@ $< -lm
+ build/release/libmujs.$(SO): one.c $(SRCS) $(HDRS)
+ 	@mkdir -p $(@D)
+-	$(CC) $(CFLAGS) $(OPTIM) -fPIC -shared -o $@ one.c -lm
++	$(CC) $(CFLAGS) $(OPTIM) -fPIC -shared $(LDFLAGS) -Wl,-soname,libmujs.so.0 -o $@ one.c -lm
+ build/release/libmujs.o: one.c $(SRCS) $(HDRS)
+ 	@mkdir -p $(@D)
+ 	$(CC) $(CFLAGS) $(OPTIM) -c -o $@ one.c
+ build/release/libmujs.a: build/release/libmujs.o
+ 	$(AR) cr $@ $^
+-build/release/mujs: main.c build/release/libmujs.o
+-	$(CC) $(CFLAGS) $(OPTIM) -o $@ $^ -lm -DHAVE_READLINE -lreadline
+-build/release/mujs-pp: pp.c build/release/libmujs.o
+-	$(CC) $(CFLAGS) $(OPTIM) -o $@ $^ -lm
++build/release/mujs: main.c build/release/libmujs.$(SO)
++	$(CC) $(CFLAGS) $(OPTIM) $(LDFLAGS) -o $@ $^ -lm -DHAVE_READLINE -lreadline
++build/release/mujs-pp: pp.c build/release/libmujs.$(SO)
++	$(CC) $(CFLAGS) $(OPTIM) $(LDFLAGS) -o $@ $^ -lm
  
- libmujs ?= libmujs.a
+ build/release/mujs.pc:
+ 	@mkdir -p $(@D)
+@@ -126,7 +126,9 @@
+ 	install -m 644 build/release/libmujs.a $(DESTDIR)$(libdir)
  
--$(OUT)/mujs: $(OUT)/main.o $(OUT)/$(libmujs)
-+$(OUT)/mujs: $(OUT)/main.o $(OUT)/libmujs.$(SO_EXT)
- 	@ mkdir -p $(@D)
- 	$(CC) $(LDFLAGS) -o $@ $< -L$(OUT) -l:$(libmujs) $(LIBREADLINE) -lm
- 
--$(OUT)/mujs-pp: $(OUT)/pp.o $(OUT)/$(libmujs)
-+$(OUT)/mujs-pp: $(OUT)/pp.o $(OUT)/libmujs.$(SO_EXT)
- 	@ mkdir -p $(@D)
- 	$(CC) $(LDFLAGS) -o $@ $< -L$(OUT) -l:$(libmujs) -lm
- 
-@@ -124,7 +124,9 @@ install-static: install-common $(OUT)/li
- 	install -m 644 $(OUT)/libmujs.a $(DESTDIR)$(libdir)
- 
- install-shared: install-common $(OUT)/libmujs.$(SO_EXT)
--	install -m 755 $(OUT)/libmujs.$(SO_EXT) $(DESTDIR)$(libdir)
-+	install -m 755 $(OUT)/libmujs.$(SO_EXT) $(DESTDIR)$(libdir)/libmujs.so.0.0.0
+ install-shared: install-common build/release/libmujs.$(SO)
+-	install -m 755 build/release/libmujs.$(SO) $(DESTDIR)$(libdir)
++	install -m 755 build/release/libmujs.$(SO) $(DESTDIR)$(libdir)/libmujs.so.0.0.0
 +	ln -s libmujs.so.0.0.0 $(DESTDIR)$(libdir)/libmujs.so.0
 +	ln -s libmujs.so.0.0.0 $(DESTDIR)$(libdir)/libmujs.so
  
